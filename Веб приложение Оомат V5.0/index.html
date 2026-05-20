@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OOMAT — ПК Клуб</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+<style>
+/* ===== v5.0 EXTRA STYLES ===== */
+.srow-op{font-size:0.75rem;color:#39ff87;display:flex;align-items:center;gap:4px}
+.pc-op{font-size:0.58rem;color:#39ff87;display:flex;align-items:center;gap:2px;overflow:hidden;max-width:90px}
+.pc-del-btn{position:absolute;top:3px;right:3px;width:16px;height:16px;background:rgba(255,51,85,0.2);border:none;border-radius:2px;color:var(--red);cursor:pointer;font-size:0.6rem;display:flex;align-items:center;justify-content:center;opacity:0;transition:0.15s}
+.pc:hover .pc-del-btn{opacity:1}
+.product-card.low-stock{border-color:rgba(255,51,85,0.35)!important}
+/* Role slots */
+.role-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:0.8rem;margin-bottom:1.5rem}
+.role-slot{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.2rem;display:flex;align-items:center;gap:12px}
+.role-slot-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.rs-orange{background:rgba(255,106,0,0.15);color:var(--orange);border:1px solid rgba(255,106,0,0.3)}
+.rs-blue{background:rgba(0,200,255,0.12);color:var(--blue);border:1px solid rgba(0,200,255,0.3)}
+.rs-green{background:rgba(57,255,135,0.1);color:var(--green);border:1px solid rgba(57,255,135,0.3)}
+.role-slot-label{font-size:0.72rem;color:var(--text2);letter-spacing:1px;text-transform:uppercase}
+.role-slot-count{font-family:var(--font-d);font-size:1.3rem;letter-spacing:2px}
+.rsc-orange{color:var(--orange)}.rsc-blue{color:var(--blue)}.rsc-green{color:var(--green)}
+/* Shift badge */
+.shift-badge{font-size:0.8rem;color:var(--green);display:flex;align-items:center;gap:6px}
+/* Section divider */
+.sec-divider{display:flex;align-items:center;gap:10px;margin:1.5rem 0 1rem}
+.sec-divider-line{flex:1;height:1px;background:var(--border)}
+.sec-divider-title{font-family:var(--font-d);font-size:0.9rem;color:var(--orange);letter-spacing:3px;white-space:nowrap}
+/* Analytics grids */
+.analytics-section{margin-top:1.5rem}
+.ag2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.ag3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem}
+/* My shift header */
+.my-shift-hdr{display:flex;gap:1.5rem;align-items:center;padding:1rem 1.2rem;background:rgba(57,255,135,0.05);border:1px solid rgba(57,255,135,0.2);border-radius:var(--r2);margin-bottom:1rem}
+.msh-stat{text-align:center}
+.msh-val{font-family:var(--font-d);font-size:1.4rem;color:var(--gold)}
+.msh-lbl{font-size:0.7rem;color:var(--text2);letter-spacing:1px;text-transform:uppercase}
+/* Error text */
+.err-text{color:var(--red);font-size:0.82rem;min-height:1.2em;margin-top:0.3rem}
+/* Report filters */
+.rep-filters{display:flex;flex-wrap:wrap;gap:0.6rem;align-items:flex-end;padding:1rem;background:rgba(255,106,0,0.03);border:1px solid var(--border);border-radius:var(--r2);margin-bottom:1rem}
+.rep-filters .field{margin:0;min-width:140px;flex:1}
+.rep-filters .field label{font-size:0.65rem}
+/* Login reg link */
+.login-reg-link{text-align:center;margin-top:0.8rem;font-size:0.8rem;color:var(--text2)}
+.login-reg-link a{color:var(--orange);cursor:pointer;text-decoration:underline}
+/* Topbar cash */
+.topbar-stat.cash-stat strong{color:var(--gold)}
+/* Receipt */
+.receipt-box{background:var(--bg4);border-radius:var(--r);padding:1.2rem}
+/* Clients grid */
+.clients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem}
+/* Settings form */
+.settings-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem}
+/* Notification pulse */
+@keyframes topbarPulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 12px rgba(255,51,85,0.6)}}
+</style>
+</head>
+<body>
+<div id="toast-root"></div>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-title" id="club-name-display">OOMAT</div>
+      <div class="login-sub">PC Club Management v5.0</div>
+    </div>
+    <div class="login-field"><i class="fas fa-user"></i><input type="text" id="login-user" placeholder="Логин" value="sysadmin" autocomplete="off"></div>
+    <div class="login-field"><i class="fas fa-lock"></i><input type="password" id="login-pass" placeholder="Пароль" value="admin123"></div>
+    <button class="btn-login" onclick="login()"><i class="fas fa-power-off"></i> ВОЙТИ В СИСТЕМУ</button>
+    <div class="login-hint">sysadmin / admin123</div>
+    <div class="login-reg-link">Нет аккаунта? <a onclick="openRegister()">Зарегистрироваться</a></div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div class="app-wrapper" id="app-wrapper" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo">OOMAT</div>
+      <div class="brand-sub">Gaming Club v5.0</div>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="sidebar-avatar">A</div>
+      <div>
+        <div class="user-name"  id="sidebar-username">—</div>
+        <div class="user-role"  id="sidebar-role-label">—</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-time" id="sidebar-clock">00:00:00</div>
+      <div style="margin-bottom:0.5rem">
+        <div class="shift-badge" id="shift-badge" style="display:none;margin-bottom:0.4rem;padding:0.4rem 0.6rem;background:rgba(57,255,135,0.06);border-radius:3px;border:1px solid rgba(57,255,135,0.2)"></div>
+        <button id="btn-start-shift" class="btn btn-green btn-sm" style="width:100%;margin-bottom:4px;display:none" onclick="startShift()"><i class="fas fa-play"></i> Начать смену</button>
+        <button id="btn-end-shift"   class="btn btn-danger btn-sm" style="width:100%;margin-bottom:4px;display:none" onclick="endShift()"><i class="fas fa-stop"></i> Завершить смену</button>
+      </div>
+      <button class="btn-logout" onclick="logout()"><i class="fas fa-power-off"></i> ВЫХОД</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="page-title" id="page-title">Дашборд</div>
+      <div class="topbar-right">
+        <div class="topbar-stat cash-stat" id="topbar-cash"><i class="fas fa-coins" style="color:var(--gold)"></i><span>Касса:</span><strong>0 сом</strong></div>
+        <div class="topbar-stat" id="topbar-active"><i class="fas fa-desktop" style="color:var(--orange)"></i><span>Активно:</span><strong>0</strong></div>
+        <div class="topbar-stat" id="topbar-overdue" style="border-color:rgba(255,51,85,0.3);display:none"><i class="fas fa-exclamation-triangle" style="color:var(--red)"></i><span style="color:var(--red)">Просроч.:</span><strong style="color:var(--red)">0</strong></div>
+        <button class="btn btn-ghost btn-sm" onclick="persist();toast('Сохранено','ok')" title="Ctrl+S"><i class="fas fa-save"></i></button>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- ========== DASHBOARD ========== -->
+      <div class="page active" id="page-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Выручка сегодня</div>
+            <div class="stat-value" id="dash-rev-today">0 с</div>
+            <div class="stat-sub"  id="dash-rev-total">Всего: 0 сом</div>
+            <div class="stat-bg-icon"><i class="fas fa-coins"></i></div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-label">Активных сессий</div>
+            <div class="stat-value" id="dash-sessions">0</div>
+            <div class="stat-sub"  id="dash-pcs">ПК: 0</div>
+            <div class="stat-bg-icon"><i class="fas fa-desktop"></i></div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">Продано товаров</div>
+            <div class="stat-value" id="dash-sold">0</div>
+            <div class="stat-sub"  id="dash-stock">Склад: 0 ед.</div>
+            <div class="stat-bg-icon"><i class="fas fa-box"></i></div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-label">Просрочено</div>
+            <div class="stat-value" id="dash-overdue">0</div>
+            <div class="stat-sub">Нужно завершить</div>
+            <div class="stat-bg-icon"><i class="fas fa-clock"></i></div>
+          </div>
+          <div class="stat-card" style="grid-column:span 1">
+            <div class="stat-label">Клиентов сегодня</div>
+            <div class="stat-value purple" id="dash-clients-today">0</div>
+            <div class="stat-sub" id="dash-clients-total">Всего: 0</div>
+            <div class="stat-bg-icon"><i class="fas fa-users"></i></div>
+          </div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card"><div class="chart-title">Выручка — последние 7 дней</div><canvas id="chart-rev" height="90"></canvas></div>
+          <div class="chart-card"><div class="chart-title">Статус ПК</div><div style="position:relative;height:160px"><canvas id="chart-pc"></canvas></div></div>
+        </div>
+        <div class="section-hdr">
+          <div class="section-hdr-title">Активные сессии</div>
+          <button class="btn btn-orange btn-sm" onclick="navigate('computers')"><i class="fas fa-desktop"></i> К компьютерам</button>
+        </div>
+        <div id="dash-sessions-list"><div class="empty-state"><i class="fas fa-moon"></i>Нет активных сессий</div></div>
+      </div>
+
+      <!-- ========== COMPUTERS ========== -->
+      <div class="page" id="page-computers">
+        <div class="pc-toolbar">
+          <div class="pc-status-bar">
+            <span class="ps-free"><span class="zone-dot zd-free"></span> Своб.: <strong id="pc-free">0</strong></span>
+            <span class="ps-occ"><span class="zone-dot zd-occ"></span> Занято: <strong id="pc-occ">0</strong></span>
+            <span class="ps-ov"><span class="zone-dot zd-ov"></span> Просроч.: <strong id="pc-ov">0</strong></span>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button id="btn-add-pc" class="btn btn-orange btn-sm" onclick="openAddPc()"><i class="fas fa-plus"></i> Добавить ПК</button>
+            <button id="btn-zones"  class="btn btn-ghost btn-sm"  onclick="openZonesModal()"><i class="fas fa-layer-group"></i> Зоны</button>
+          </div>
+        </div>
+        <div id="zones-container"></div>
+      </div>
+
+      <!-- ========== PRODUCTS ========== -->
+      <div class="page" id="page-products">
+        <div class="section-hdr" style="margin-bottom:1rem;flex-wrap:wrap;gap:0.6rem">
+          <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+            <div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="product-search" placeholder="Поиск..." oninput="renderProducts(this.value)"></div>
+            <select id="prod-cat-filter" class="btn btn-ghost btn-sm" style="padding:6px 10px" onchange="renderProducts(undefined,this.value)">
+              <option value="">Все категории</option>
+            </select>
+          </div>
+          <button id="btn-add-product" class="btn btn-orange btn-sm" onclick="openAddProduct()"><i class="fas fa-plus"></i> Добавить товар</button>
+        </div>
+        <div class="products-grid" id="products-grid"><div class="empty-state" style="grid-column:1/-1"><i class="fas fa-box-open"></i>Нет товаров</div></div>
+      </div>
+
+      <!-- ========== CLIENTS ========== -->
+      <div class="page" id="page-clients">
+        <div class="section-hdr" style="margin-bottom:1rem">
+          <div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="client-search" placeholder="Поиск клиентов..." oninput="renderClients(this.value)"></div>
+          <button class="btn btn-orange btn-sm" onclick="openAddClient()"><i class="fas fa-user-plus"></i> Добавить клиента</button>
+        </div>
+        <div class="clients-grid" id="clients-grid"><div class="empty-state" style="grid-column:1/-1"><i class="fas fa-users"></i>Нет клиентов</div></div>
+      </div>
+
+      <!-- ========== TARIFFS ========== -->
+      <div class="page" id="page-tariffs">
+        <div class="section-hdr" style="margin-bottom:1rem">
+          <div class="section-hdr-title">Тарифы</div>
+          <button id="btn-add-tariff" class="btn btn-orange btn-sm" onclick="openOverlay('overlay-add-tariff')"><i class="fas fa-plus"></i> Новый тариф</button>
+        </div>
+        <div class="tariff-grid" id="tariff-grid"></div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Все тарифы</div></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Название</th><th>Длительность</th><th>Цена</th><th>VIP ×</th><th>Тип</th></tr></thead>
+            <tbody id="tariff-tbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- ========== REPORTS ========== -->
+      <div class="page" id="page-reports">
+        <div class="report-stats" id="rep-stats"></div>
+
+        <!-- Filters -->
+        <div class="rep-filters">
+          <div class="field"><label>Дата от</label><input type="date" id="rep-date-from"></div>
+          <div class="field"><label>Дата до</label><input type="date" id="rep-date-to"></div>
+          <div class="field">
+            <label>Оператор</label>
+            <select id="rep-op-filter"><option value="all">Все</option></select>
+          </div>
+          <div style="display:flex;gap:6px;align-items:flex-end">
+            <button class="btn btn-orange btn-sm" onclick="applyReportFilters()"><i class="fas fa-filter"></i> Применить</button>
+            <button class="btn btn-ghost btn-sm"  onclick="clearReportFilters()"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
+
+        <!-- Sessions history -->
+        <div class="card" style="margin-bottom:1rem">
+          <div class="card-header">
+            <div class="card-title">История сессий</div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-orange btn-sm" onclick="exportData()"><i class="fas fa-download"></i> JSON</button>
+              <button class="btn btn-ghost btn-sm"  onclick="exportCSV()"><i class="fas fa-file-csv"></i> CSV</button>
+              <button class="btn btn-ghost btn-sm"  onclick="clearHistory()"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>ПК</th><th>Клиент</th><th>Тариф</th><th>Начало</th><th>Конец</th><th>Оператор</th><th>Сумма</th></tr></thead>
+            <tbody id="history-tbody"></tbody>
+          </table></div>
+        </div>
+
+        <!-- Sales history -->
+        <div class="card" style="margin-bottom:1rem">
+          <div class="card-header">
+            <div class="card-title">История продаж</div>
+            <button class="btn btn-ghost btn-sm" onclick="clearSales()"><i class="fas fa-trash"></i></button>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Товар</th><th>Кол-во</th><th>Сумма</th><th>Оператор</th><th>Дата</th></tr></thead>
+            <tbody id="sales-tbody"></tbody>
+          </table></div>
+        </div>
+
+        <!-- Shifts history -->
+        <div class="card" style="margin-bottom:1rem">
+          <div class="card-header"><div class="card-title">История смен</div></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Сотрудник</th><th>Роль</th><th>Начало</th><th>Конец</th><th>Длительность</th><th>Заработано</th></tr></thead>
+            <tbody id="shifts-tbody"></tbody>
+          </table></div>
+        </div>
+
+        <!-- ===== ANALYTICS ===== -->
+        <div class="analytics-section">
+          <div class="sec-divider">
+            <div class="sec-divider-line"></div>
+            <div class="sec-divider-title"><i class="fas fa-chart-pie" style="margin-right:8px"></i>АНАЛИТИКА</div>
+            <div class="sec-divider-line"></div>
+          </div>
+
+          <!-- My shifts -->
+          <div class="my-shift-hdr">
+            <i class="fas fa-user-clock" style="font-size:1.5rem;color:var(--green)"></i>
+            <div>
+              <div style="font-size:0.7rem;color:var(--text2);letter-spacing:2px;text-transform:uppercase;margin-bottom:2px">Мои смены</div>
+              <div style="font-size:0.82rem;color:var(--text)">Итого за все смены</div>
+            </div>
+            <div class="msh-stat" style="margin-left:auto"><div class="msh-val" id="my-shift-total">0 сом</div><div class="msh-lbl">Итого</div></div>
+            <div class="msh-stat"><div class="msh-val" id="my-shift-count">0</div><div class="msh-lbl">Смен</div></div>
+          </div>
+          <div class="card" style="margin-bottom:1.5rem">
+            <div class="card-header"><div class="card-title">Мои смены</div></div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Дата</th><th>Начало</th><th>Конец</th><th>Длит.</th><th>Заработано</th></tr></thead>
+              <tbody id="my-shifts-body"></tbody>
+            </table></div>
+          </div>
+
+          <!-- Charts -->
+          <div class="ag2">
+            <div class="chart-card"><div class="chart-title">Выручка по сотрудникам</div><canvas id="chart-staff-earn" height="130"></canvas></div>
+            <div class="chart-card"><div class="chart-title">Выручка за 30 дней</div><canvas id="chart-daily-line" height="130"></canvas></div>
+          </div>
+
+          <!-- Staff stats -->
+          <div class="card" style="margin-bottom:1.5rem">
+            <div class="card-header"><div class="card-title">Статистика сотрудников</div></div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Сотрудник</th><th>Роль</th><th>Сессий</th><th>Продаж</th><th>Выр. (сессии)</th><th>Итого</th></tr></thead>
+              <tbody id="op-stats-body"></tbody>
+            </table></div>
+          </div>
+
+          <!-- Top 3 tables -->
+          <div class="ag3">
+            <div class="card">
+              <div class="card-header"><div class="card-title">Топ ПК</div></div>
+              <div class="table-wrap"><table><thead><tr><th>ПК</th><th>Выручка</th></tr></thead><tbody id="top-pcs-body"></tbody></table></div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">Топ товары</div></div>
+              <div class="table-wrap"><table><thead><tr><th>Товар</th><th>Выручка</th></tr></thead><tbody id="top-prods-body"></tbody></table></div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">Топ клиенты</div></div>
+              <div class="table-wrap"><table><thead><tr><th>Клиент</th><th>Визитов</th><th>Потрачено</th></tr></thead><tbody id="top-clients-body"></tbody></table></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== STAFF ========== -->
+      <div class="page" id="page-staff">
+        <div class="role-slots">
+          <div class="role-slot">
+            <div class="role-slot-icon rs-orange"><i class="fas fa-shield-halved"></i></div>
+            <div><div class="role-slot-label">Сист. Администратор</div><div class="role-slot-count rsc-orange" id="role-count-sysadmin">0/1</div></div>
+          </div>
+          <div class="role-slot">
+            <div class="role-slot-icon rs-blue"><i class="fas fa-user-tie"></i></div>
+            <div><div class="role-slot-label">Менеджер</div><div class="role-slot-count rsc-blue" id="role-count-manager">0/1</div></div>
+          </div>
+          <div class="role-slot">
+            <div class="role-slot-icon rs-green"><i class="fas fa-headset"></i></div>
+            <div><div class="role-slot-label">Операторы</div><div class="role-slot-count rsc-green" id="role-count-operator">0/3</div></div>
+          </div>
+        </div>
+        <div class="section-hdr" style="margin-bottom:1rem">
+          <div class="section-hdr-title">Список сотрудников</div>
+          <button id="btn-add-staff" class="btn btn-orange btn-sm" onclick="openRegister()"><i class="fas fa-user-plus"></i> Добавить</button>
+        </div>
+        <div class="card">
+          <div class="table-wrap"><table>
+            <thead><tr><th>Сотрудник</th><th>Роль</th><th>Смен</th><th>Заработано</th><th>Создан</th><th></th></tr></thead>
+            <tbody id="staff-tbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- ========== SETTINGS ========== -->
+      <div class="page" id="page-settings">
+        <div class="settings-grid">
+
+          <!-- Club settings -->
+          <div class="settings-card" style="grid-column:span 2">
+            <h3><i class="fas fa-store"></i> Настройки клуба</h3>
+            <div class="settings-form-grid">
+              <div class="field"><label>Название клуба</label><input type="text" id="set-club-name" placeholder="OOMAT Gaming Club"></div>
+              <div class="field"><label>Валюта</label><input type="text" id="set-currency" placeholder="сом"></div>
+              <div class="field"><label>Порог низкого остатка (шт)</label><input type="number" id="set-low-stock" value="5" min="1"></div>
+              <div class="field"><label>Предупреждение за (мин)</label><input type="number" id="set-warn-min" value="10" min="1"></div>
+            </div>
+            <button class="btn btn-orange btn-sm" onclick="saveSettings()" style="margin-top:0.8rem"><i class="fas fa-save"></i> Сохранить настройки</button>
+          </div>
+
+          <!-- Change password -->
+          <div class="settings-card">
+            <h3><i class="fas fa-key"></i> Сменить пароль</h3>
+            <div class="field"><label>Старый пароль</label><input type="password" id="cp-old" placeholder="••••"></div>
+            <div class="field"><label>Новый пароль</label><input type="password" id="cp-new" placeholder="••••"></div>
+            <div class="field"><label>Повтор нового</label><input type="password" id="cp-new2" placeholder="••••"></div>
+            <div class="err-text" id="cp-error"></div>
+            <button class="btn btn-orange btn-sm" onclick="changeMyPassword()"><i class="fas fa-key"></i> Сменить</button>
+          </div>
+
+          <!-- Backup -->
+          <div class="settings-card">
+            <h3><i class="fas fa-database"></i> Данные</h3>
+            <p style="font-size:0.83rem;color:var(--text2);margin-bottom:0.8rem">Экспорт и импорт резервной копии</p>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <button class="btn btn-orange btn-sm" onclick="exportData()"><i class="fas fa-download"></i> JSON</button>
+              <button class="btn btn-ghost  btn-sm" onclick="exportCSV()"><i class="fas fa-file-csv"></i> CSV</button>
+              <button class="btn btn-ghost  btn-sm" onclick="document.getElementById('import-file').click()"><i class="fas fa-upload"></i> Импорт</button>
+              <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
+            </div>
+          </div>
+
+          <!-- Demo + Reset -->
+          <div class="settings-card">
+            <h3><i class="fas fa-magic"></i> Демо-данные</h3>
+            <p style="font-size:0.83rem;color:var(--text2);margin-bottom:0.8rem">Загрузить тестовые компьютеры, товары, клиентов и смены</p>
+            <button class="btn btn-gold btn-sm" onclick="loadDemoAndRefresh()"><i class="fas fa-magic"></i> Загрузить демо</button>
+          </div>
+
+          <div class="settings-card">
+            <h3><i class="fas fa-trash-alt"></i> Сброс системы</h3>
+            <p style="font-size:0.83rem;color:var(--text2);margin-bottom:0.8rem">Удалить все данные. Только для sysadmin. Необратимо!</p>
+            <button class="btn btn-danger btn-sm" onclick="resetAll()"><i class="fas fa-exclamation-triangle"></i> Сбросить всё</button>
+          </div>
+
+          <!-- Hotkeys -->
+          <div class="settings-card">
+            <h3><i class="fas fa-keyboard"></i> Горячие клавиши</h3>
+            <div style="font-size:0.82rem;color:var(--text2);line-height:2.2">
+              <div><kbd style="background:var(--bg4);border:1px solid var(--border);padding:1px 6px;border-radius:3px;color:var(--orange)">Ctrl+1…7</kbd> Навигация</div>
+              <div><kbd style="background:var(--bg4);border:1px solid var(--border);padding:1px 6px;border-radius:3px;color:var(--orange)">Ctrl+S</kbd> Сохранить</div>
+              <div><kbd style="background:var(--bg4);border:1px solid var(--border);padding:1px 6px;border-radius:3px;color:var(--orange)">Ctrl+Q</kbd> Выйти</div>
+              <div><kbd style="background:var(--bg4);border:1px solid var(--border);padding:1px 6px;border-radius:3px;color:var(--orange)">Esc</kbd> Закрыть модал</div>
+            </div>
+          </div>
+
+          <!-- Action log -->
+          <div class="settings-card" style="grid-column:span 2">
+            <h3><i class="fas fa-list-alt"></i> Лог действий</h3>
+            <div class="table-wrap" style="max-height:260px;overflow-y:auto"><table>
+              <thead><tr><th>Время</th><th>Дата</th><th>Кто</th><th>Действие</th></tr></thead>
+              <tbody id="actlog-body"></tbody>
+            </table></div>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->
+
+
+<!-- ======================================================
+     OVERLAYS / MODALS
+     ====================================================== -->
+
+<!-- REGISTER -->
+<div class="overlay" id="overlay-register">
+  <div class="modal">
+    <button class="modal-close" onclick="closeOverlay('overlay-register')"><i class="fas fa-times"></i></button>
+    <div class="modal-title">Регистрация</div>
+    <div class="field-row">
+      <div class="field"><label>Логин</label><input type="text" id="reg-login" placeholder="username" autocomplete="off"></div>
+      <div class="field"><label>Роль</label><select id="reg-role"></select></div>
+    </div>
+    <div class="field"><label>Полное имя</label><input type="text" id="reg-name" placeholder="Имя и фамилия"></div>
+    <div class="field-row">
+      <div class="field"><label>Пароль</label><input type="password" id="reg-pass" placeholder="Мин. 4 символа"></div>
+      <div class="field"><label>Повтор пароля</label><input type="password" id="reg-pass2" placeholder="Повтор"></div>
+    </div>
+    <div class="err-text" id="reg-error"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost"  onclick="closeOverlay('overlay-register')">Отмена</button>
+      <button class="btn btn-orange" onclick="doRegister()"><i class="fas fa-user-plus"></i> Зарегистрировать</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD -->
+<div class="overlay" id="overlay-change-pass">
+  <div class="modal" style="max-width:400px">
+    <button class="modal-close" onclick="closeOverlay('overlay-change-pass')"><i class="fas fa-times"></i></button>
+    <div class="modal-title">Сменить пароль</div>
+    <div class="field"><label>Старый пароль</label><input type="password" id="cp-old2" placeholder="••••"></div>
+    <div class="field"><label>Новый пароль</label><input type="password" id="cp-new2a" placeholder="Мин. 4 символа"></div>
+    <div class="field"><label>Повтор нового</label><input type="password" id="cp-new2b" placeholder="Повтор"></div>
+    <div class="err-text" id="cp-error2"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeOverlay('overlay-change-pass')">Отмена</button>
+      <button class="btn btn-orange" onclick="changePassModal()"><i class="fas fa-key"></i> Сменить</button>
+    </div>
+  </div>
+</div>
+
+<!-- SESSION START -->
+<div class="overlay" id="overlay-session">
+  <div class="modal">
+    <button class="modal-close" onclick="closeOverlay('overlay-session')"><i class="fas fa-times"></i></button>
+    <div class="modal-title" id="sess-modal-title">Начать сессию</div>
+    <div class="info-box" id="sess-pc-info"></div>
+    <div class="field">
+      <label>Имя клиента</label>
+      <input type="text" id="sess-client" placeholder="Начните вводить имя..." autocomplete="off" list="sess-client-list">
+      <datalist id="sess-client-list"></datalist>
+    </div>
+    <div class="field"><label>Заметка (необязательно)</label><input type="text" id="sess-note" placeholder="Доп. информация..."></div>
+    <div class="field"><label>Выберите тариф</label><div class="tariff-picker" id="sess-tariff-picker"></div></div>
+    <div class="info-box" id="sess-calc" style="display:none"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost"  onclick="closeOverlay('overlay-session')">Отмена</button>
+      <button class="btn btn-orange" onclick="startSession()"><i class="fas fa-play"></i> Начать</button>
+    </div>
+  </div>
+</div>
+
+<!-- SESSION END -->
+<div class="overlay" id="overlay-end-session">
+  <div class="modal" style="max-width:460px">
+    <button class="modal-close" onclick="closeOverlay('overlay-end-session')"><i class="fas fa-times"></i></button>
+    <div class="modal-title">Завершить сессию</div>
+    <div class="info-box" id="end-sess-info"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost"   onclick="closeOverlay('overlay-end-session')">Отмена</button>
+      <button class="btn btn-orange"  onclick="openExtendSession(_endSessId);closeOverlay('overlay-end-session')"><i class="fas fa-plus"></i> Продлить</button>
+      <button class="btn btn-danger"  onclick="confirmEndSession()"><i class="fas fa-stop"></i> Завершить</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXTEND SESSION -->
+<div class="overlay" id="overlay-extend">
+  <div class="modal">
+    <button class="modal-close" onclick="closeOverlay('overlay-extend')"><i class="fas fa-times"></i></button>
+    <div class="modal-title">Продлить сессию</div>
+    <div class="info-box" id="extend-info"></div>
+    <div class="field"><label>Выберите дополнительный тариф</label><div class="tariff-picker" id="extend-tariff-picker"></div></div>
+    <div class="info-box" id="extend-calc" style="display:none"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost"  onclick="closeOverlay('overlay-extend')">Отмена</button>
+      <button class="btn btn-orange" onclick="confirmExtend()"><i class="fas fa-plus"></i> Продлить</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECEIPT -->
+<div class="overlay" id="overlay-receipt">
+  <div class="modal" style="max-width:380px">
+    <button class="modal-close" onclick="closeOverlay('overlay-receipt')"><i class="fas fa-times"></i></button>
+    <div class="modal-title">Чек</div>
+    <div class="receipt-box" id="receipt-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost"  onclick="closeOverlay('overlay-receipt')">Закрыть</button>
+      <button class="btn btn-orange" onclick="window.print()"><i class="fas fa-print"></i> Печать</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PC -->
+<div class="overlay" id="overlay-add-pc">
+  <div class="modal" style="max-width:420px">
+    <button class="modal-close" onclick="closeOverlay('overlay-add-pc')"><i class="fas fa-times"></i></button>
+    <div class="modal-title">Добавить компьютер</div>
+    <div class="field-row">
+      <div class="field"><label>Номер ПК</label><input type="text" id="add-pc-num" placeholder="6"></div>
+      <div class="field"><label>Зона</label><select id="add-pc-zone"></select></div>
+    </div>
+    <div class="checkbox-row"><input type="checkbox" id="add-pc-vip"><span>★ VIP компьютер (цена × vipMult)</span></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost"  onclick="closeOverlay('overlay-add-pc')">Отмена</button>
+      <button class="btn btn-orange" onclick="saveAddPc()">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ZONES -->
+<div class="overlay" id="overlay-zones">
+  <div class="modal" style="max-width:440px">
+    <button class="modal-close" onclick="closeOverlay('overlay-zones')"><i class="fas fa-times"></i></button>
+    <div class="modal-title">Управление зонами</div>
+    <div class="field-row" style="align-items:flex-end">
+      <div class="field"><label>Название зоны</label><input type="text" id="new-zone-name" placeholder="A, VIP, PRO..."></div>
+      <div class="field"><button class="btn btn-orange" style="width:100%;margin-top:1.4rem" onclick="addZone()">Добавить</button></div>
+    </div>
+    <div class="divider"></div>
+    <div id="zones-list"></div>
+  </div>
+</div>
+
+<!-- ADD PRODUCT -->
+<div class="overlay" id="overlay-add-product">
+  <div class="modal">
+    <button class="modal-close" onclick="closeOverlay('overlay-add-product')"><i class="fas fa-times"></i></button>
+    <div class="modal-title">Добавить товар</div>
+    <div class="field-row">
+      <div class="field"><label>Название</label><input type="text" id="prod-name" placeholder="Red Bull, Чипсы..."></div>
+      <div class="field"><label>Категория</label><input type="text" id="prod-cat" placeholder="Напитки, Снеки..."></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Цена</label><input type="number" id="prod-price" placeholder="150" min="0"></div>
+      <div class="field"><label>Количество</label><input type="number" id="prod-qty" placeholder="50" min="0"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost"  onclick="closeOverlay('overlay-add-product')">Отмена</button>
+      <button class="btn btn-orange" onclick="saveProduct()">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PRODUCT -->
+<div class="overlay" id="overlay-edit-product">
+  <div class="modal" style="max-width:420px">
+    <button class="modal-close" onclick="closeOverlay('overlay-edit-product')"><i class="fas fa-times"></i></button>
+    <div class="modal-title">Редактировать товар</div>
+    <div class="field"><label>Название</label><input type="text" id="edit-prod-name"></div>
+    <div class="field"><label>Категория</label><input type="text" id="edit-prod-cat"></div>
+    <div class="field"><label>Цена</label><input type="number" id="edit-prod-price" min="0"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost"  onclick="closeOverlay('overlay-edit-product')">Отмена</button>
+      <button class="btn btn-orange" onclick="saveEditProduct()"><i class="fas fa-save"></i> Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESTOCK PRODUCT -->
+<div class="overlay" id="overlay-restock">
+  <div class="modal" style="max-width:380px">
+    <button class="modal-close" onclick="closeOverlay('overlay-restock')"><i class="fas fa-times"></i></button>
+    <div class="modal-title">Пополнение склада</div>
+    <div class="info-box" id="restock-info"></div>
+    <div class="field"><label>Добавить количество (шт)</label><input type="number" id="restock-qty" placeholder="20" min="1"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost"  onclick="closeOverlay('overlay-restock')">Отмена</button>
+      <button class="btn btn-orange" onclick="confirmRestock()"><i class="fas fa-plus-circle"></i> Пополнить</button>
+    </div>
+  </div>
+</div>
+
+<!-- SELL -->
+<div class="overlay" id="overlay-sell">
+  <div class="modal" style="max-width:380px">
+    <button class="modal-close" onclick="closeOverlay('overlay-sell')"><i class="fas fa-times"></i></button>
+    <div class="modal-title">Продажа</div>
+    <div class="info-box" id="sell-info"></div>
+    <div class="field"><label>Количество</label><input type="number" id="sell-qty" value="1" min="1" oninput="updateSellCalc()"></div>
+    <div class="info-box" id="sell-calc"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeOverlay('overlay-sell')">Отмена</button>
+      <button class="btn btn-gold"  onclick="confirmSell()"><i class="fas fa-cash-register"></i> Продать</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CLIENT -->
+<div class="overlay" id="overlay-add-client">
+  <div class="modal" style="max-width:440px">
+    <button class="modal-close" onclick="closeOverlay('overlay-add-client')"><i class="fas fa-times"></i></button>
+    <div class="modal-title">Добавить клиента</div>
+    <div class="field-row">
+      <div class="field"><label>Имя</label><input type="text" id="client-name" placeholder="Полное имя"></div>
+      <div class="field"><label>Телефон</label><input type="text" id="client-phone" placeholder="+996 xxx xxx"></div>
+    </div>
+    <div class="field"><label>Заметка</label><input type="text" id="client-note" placeholder="VIP, постоянный..."></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost"  onclick="closeOverlay('overlay-add-client')">Отмена</button>
+      <button class="btn btn-orange" onclick="saveClient()"><i class="fas fa-user-plus"></i> Добавить</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT CLIENT -->
+<div class="overlay" id="overlay-edit-client">
+  <div class="modal" style="max-width:440px">
+    <button class="modal-close" onclick="closeOverlay('overlay-edit-client')"><i class="fas fa-times"></i></button>
+    <div class="modal-title">Редактировать клиента</div>
+    <div class="field-row">
+      <div class="field"><label>Имя</label><input type="text" id="edit-client-name"></div>
+      <div class="field"><label>Телефон</label><input type="text" id="edit-client-phone"></div>
+    </div>
+    <div class="field"><label>Заметка</label><input type="text" id="edit-client-note"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost"  onclick="closeOverlay('overlay-edit-client')">Отмена</button>
+      <button class="btn btn-orange" onclick="saveEditClient()"><i class="fas fa-save"></i> Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT HISTORY -->
+<div class="overlay" id="overlay-client-history">
+  <div class="modal">
+    <button class="modal-close" onclick="closeOverlay('overlay-client-history')"><i class="fas fa-times"></i></button>
+    <div class="modal-title" id="client-hist-title">История клиента</div>
+    <div id="client-hist-content"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeOverlay('overlay-client-history')">Закрыть</button></div>
+  </div>
+</div>
+
+<!-- ADD TARIFF -->
+<div class="overlay" id="overlay-add-tariff">
+  <div class="modal">
+    <button class="modal-close" onclick="closeOverlay('overlay-add-tariff')"><i class="fas fa-times"></i></button>
+    <div class="modal-title">Новый тариф</div>
+    <div class="field-row">
+      <div class="field"><label>Название</label><input type="text" id="tar-name" placeholder="1 час, Ночной..."></div>
+      <div class="field"><label>Тип</label>
+        <select id="tar-type">
+          <option value="hourly">Почасовой</option>
+          <option value="fixed">Фиксированный</option>
+          <option value="night">Ночной</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Длительность (мин)</label><input type="number" id="tar-dur" placeholder="60" min="1"></div>
+      <div class="field"><label>Цена</label><input type="number" id="tar-price" placeholder="50" min="1"></div>
+    </div>
+    <div class="field"><label>VIP множитель (× цены)</label><input type="number" id="tar-vip" value="1.5" step="0.1" min="1" max="5"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost"  onclick="closeOverlay('overlay-add-tariff')">Отмена</button>
+      <button class="btn btn-orange" onclick="saveTariff()">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+// Extra function for change password via modal (separate IDs from settings page)
+function changePassModal() {
+  const oldP=document.getElementById('cp-old2').value,
+        newP=document.getElementById('cp-new2a').value,
+        newP2=document.getElementById('cp-new2b').value,
+        errEl=document.getElementById('cp-error2');
+  if(!oldP||!newP||!newP2)   { errEl.textContent='Заполните все поля'; return; }
+  if(me().pass!==oldP)        { errEl.textContent='Старый пароль неверный'; return; }
+  if(newP!==newP2)            { errEl.textContent='Новые пароли не совпадают'; return; }
+  if(newP.length<4)           { errEl.textContent='Минимум 4 символа'; return; }
+  S.staff[S.currentUser].pass=newP;
+  persist(); closeOverlay('overlay-change-pass');
+  ['cp-old2','cp-new2a','cp-new2b'].forEach(id=>document.getElementById(id).value='');
+  errEl.textContent='';
+  logAction('Смена пароля');
+  toast('Пароль изменён','ok');
+}
+// settings page change pass uses separate IDs
+function changeMyPassword(){
+  const oldP=val('cp-old'), newP=val('cp-new'), newP2=val('cp-new2'),
+        errEl=document.getElementById('cp-error');
+  if(!oldP||!newP||!newP2)   { errEl.textContent='Заполните все поля'; return; }
+  if(me().pass!==oldP)        { errEl.textContent='Старый пароль неверный'; return; }
+  if(newP!==newP2)            { errEl.textContent='Новые пароли не совпадают'; return; }
+  if(newP.length<4)           { errEl.textContent='Минимум 4 символа'; return; }
+  S.staff[S.currentUser].pass=newP;
+  persist();
+  ['cp-old','cp-new','cp-new2'].forEach(id=>document.getElementById(id).value='');
+  errEl.textContent='';
+  logAction('Смена пароля');
+  toast('Пароль изменён','ok');
+}
+</script>
+</body>
+</html>
